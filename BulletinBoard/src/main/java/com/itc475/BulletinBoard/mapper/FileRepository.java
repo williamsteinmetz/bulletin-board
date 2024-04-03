@@ -18,7 +18,7 @@ public interface FileRepository {
 	})
 	public List<File> findAll();
 	
-	@Select("SELECT * FROM bulletin-board-files WHERE file_name = #{fileName}")
+	@Select("SELECT * FROM bulletin_board_files WHERE file_name = #{fileName}")
 	@ResultMap("FileDataResult")
 	public File getFileByFileName(String fileName);
 	
