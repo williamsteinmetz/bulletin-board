@@ -12,7 +12,6 @@ import com.itc475.BulletinBoard.domain.File;
 public interface FileRepository {
 	@Select("SELECT * FROM bulletin_board_files")
 	@Results(id="FileDataResult", value= {
-			@Result(column="id",property="id"),
 			@Result(column="name",property="fileName"),
 			@Result(column="file_path",property="filePath")
 	})

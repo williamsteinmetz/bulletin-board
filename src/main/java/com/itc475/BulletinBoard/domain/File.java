@@ -48,6 +48,5 @@ public class File {
 	public void setFileUploadedOn(Date fileUploadedOn) {
 		this.fileUploadedOn = fileUploadedOn;
 	}
-
 	
 }
