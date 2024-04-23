@@ -13,24 +13,24 @@ import com.itc475.BulletinBoard.mapper.FileRepository;
 
 @Controller
 public class FileController {
-	
+
 	@Autowired
 	FileRepository fileRepo;
-	
-	//@GetMapping("/load")
-	//public String listFile(Model model) {
-		
-	//	File file = fileRepo.getFileByFileName();
-	//	model.addAttribute("file", file);
-	//	return "index";
-		
-	//}
-	
+
+	// @GetMapping("/load")
+	// public String listFile(Model model) {
+
+	// File file = fileRepo.getFileByFileName();
+	// model.addAttribute("file", file);
+	// return "index";
+
+	// }
+
 	@PostMapping("/add")
 	public String newPic(Model model) {
-		
+
 		return "add-picture";
-		
+
 	}
 
 }
