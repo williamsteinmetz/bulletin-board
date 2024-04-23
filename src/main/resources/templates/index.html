@@ -15,11 +15,9 @@
        .point-4 {position: absolute; top: 65%; left: 75%;}
        .point-5 {position: absolute; top: 65%; right: 75%;}
        
-       .point .text {position: absolute; top: 30px;left: -120px; width: 70px; padding: 20px; border-radius: 4px; background: #00000077; 
-       border: 1px solid #ffffff77; color: #ffffff; line-height: 1.3em; font-family: Helvetica, Arial, sans-serif; font-weight: 100; 
-       font-size: 14px;}
+       .button {position: absolute; top: 5% ; left: 3%}
        
-       .link {position: absolute; top: 30px;left: -120px; width: 70px; padding: 20px; border-radius: 4px; background: #00000077; 
+       .point .text {position: absolute; top: 30px;left: -120px; width: 70px; padding: 20px; border-radius: 4px; background: #00000077; 
        border: 1px solid #ffffff77; color: #ffffff; line-height: 1.3em; font-family: Helvetica, Arial, sans-serif; font-weight: 100; 
        font-size: 14px;}
        
@@ -28,6 +26,12 @@
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="js/scene.js"></script>
+    
+    <div class="button">
+    	<form action="/add-picture.html">
+    		<input type="submit" value="Upload Picture from File" />
+		</form>	
+    </div>
     
     <div class="point point-1">
     	<img id="Item Preview" src="" width="200" height="150"/>
