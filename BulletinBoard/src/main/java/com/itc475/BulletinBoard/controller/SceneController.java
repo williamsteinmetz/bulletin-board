@@ -8,6 +8,6 @@ public class SceneController {
 
     @GetMapping("/")
     public String index() {
-        return "index";
+        return "../static/index";
     }
 }

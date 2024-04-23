@@ -32,25 +32,29 @@ canvas {
         cursor: pointer;
     }
 </style>
-
-
 <script type="importmap">
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
-                "PointerLockControls": "https://unpkg.com/three@0.163.0/examples/jsm/controls/PointerLockControls.js"
+                "PointerLockControls": "https://unpkg.com/three@0.163.0/examples/jsm/controls/PointerLockControls.js",
+                "Capsule": "./js/Capsule.js",
+                "GLTFLoader": "./js/GLTFLoader.js",
+                "Octree": "./js/Octree.js",
+                "OctreeHelper": "./js/OctreeHelper.js",
+                "Stats": "./js/Stats.js"
             }
         }
  </script>
 </head>
 
-<body>
-	<div id="blocker">
-		<div id="instructions">
-			<p>Click to play</p>
-			<p>(W, A, S, D = Move, MOUSE = Look around)</p>
-		</div>
-	</div>
+<div id="info">
+    Octree threejs demo - basic collisions with static triangle mesh<br />
+    MOUSE to look around and to throw balls<br/>
+    WASD to move and SPACE to jump
+</div>
+<div id="container"></div>
+
+
 	<script type="module" src="./js/scene.js"></script>
 </body>
 </html>
