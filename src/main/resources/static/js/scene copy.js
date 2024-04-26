@@ -206,15 +206,6 @@ document.addEventListener('keyup', (event) => {
 document.addEventListener('mousedown', () => {
 	mouseTime = performance.now();
 	console.log('Mouse down!');
-
-	if(document.body.requestPointerLock) 
-	{
-		document.body.requestPointerLock();
-		menu.style.display = 'none';
-		container.appendChild(crosshair);
-	}
-
-	
 	// Calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
 	const mouse = new THREE.Vector2();
@@ -312,10 +303,19 @@ function controls(deltaTime) {
 
 	if (playerOnFloor) {
 		if (keyStates['Space']) {
-			playerVelocity.y = 9;
+			playerVelocity.y = 5;
 		}
 	}
 }
+
+// -------------------------------Menu Setup--------------------------------
+
+const menu = document.getElementById('menu');
+menu.addEventListener('click', () => {
+	menu.style.display = 'none';
+	document.body.requestPointerLock();
+	container.appendChild(crosshair);
+});
 
 
 // -------------------------------Window Resize-------------------------------
