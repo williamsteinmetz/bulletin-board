@@ -1,5 +1,7 @@
 package com.itc475.BulletinBoard.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +15,15 @@ public class FileController {
 
 	@Autowired
 	FileRepository fileRepo;
+	
+	@GetMapping("/selectAll")
+	public String getFile(Model model) {
+
+		List<File> files = fileRepo.getAllFiles();
+		model.addAttribute("files", files);
+		return "";
+
+	}
 
 	@GetMapping("/select")
 	public String getFile(Model model, @RequestParam String fileName) {

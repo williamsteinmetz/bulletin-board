@@ -1,12 +1,24 @@
 package com.itc475.BulletinBoard.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
+
 import org.apache.ibatis.annotations.*;
 
 import com.itc475.BulletinBoard.domain.File;
 
 @Mapper
 public interface FileRepository {
+	@Select("SELECT * FROM bulletin_board_files")
+	@Results(id="FileDataResult", value= {
+		@Result(column="id",property="id"),
+		@Result(column="name",property="fileName"),
+		@Result(column="file_path",property="filePath"),
+		@Result(column="file_type",property="fileType"),
+		@Result(column="size",property="fileSize"),
+		@Result(column="uploaded_at",property="fileUploadedOn")
+	})
+	public List<File> getAllFiles();
+	
 	@Select("SELECT * FROM bulletin_board_files WHERE file_name = #{fileName}")
 	@ResultMap("FileDataResult")
 	public File getFileByFileName(String fileName);
