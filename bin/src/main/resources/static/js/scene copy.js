@@ -13,10 +13,6 @@ import { TextGeometry } from './TextGeometry.js';
 // Get the container element
 const container = document.getElementById('container');
 
-let dataItems = [];
-let dataItem;
-let contentShown = false;
-
 // -------------------------------Scene Setup--------------------------------
 
 // Create a clock for timing
@@ -33,20 +29,6 @@ camera.rotation.order = 'YXZ';
 
 camera.position.set(0, 0, -10);
 camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-// Set the camera up and down looking limits
-const maxUpAngle = Math.PI / 2; // Maximum angle to look up
-const maxDownAngle = Math.PI / 2; // Maximum angle to look down
-
-// Function to limit the camera rotation
-function limitCameraRotation() {
-	const upAngle = Math.max(-maxUpAngle, Math.min(maxDownAngle, camera.rotation.x));
-	camera.rotation.x = upAngle;
-}
-
-
-
-// Add event listener for mouse movement
 
 // -------------------------------Lighting Setup--------------------------------
 
@@ -143,8 +125,6 @@ function onMouseMove(event) {
 		camera.rotation.y -= event.movementX / 500;
 		camera.rotation.x -= event.movementY / 500;
 	}
-
-	limitCameraRotation();
 }
 
 
@@ -158,6 +138,8 @@ function raycast() {
 	const intersects = raycaster.intersectObjects(scene.children, true);
 	if (intersects.length > 0) {
 		const intersection = intersects[0];
+		const object = intersection.object;
+
 
 		// Create a new line from a point slightly in front of the camera to the intersection point
 		const startPoint = new THREE.Vector3().copy(camera.position).add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(2));
@@ -169,20 +151,6 @@ function raycast() {
 }
 
 document.addEventListener('mousemove', onMouseMove);
-
-const startButton = document.getElementById('startButton');
-let gameStarted = false;
-startButton.addEventListener('click', function () {
-
-	if (document.body.requestPointerLock) {
-		document.body.requestPointerLock();
-		menu.style.display = 'none';
-		container.appendChild(crosshair);
-		console.log("Start Game Button Clicked!");
-	}
-	gameStarted = true;
-});
-
 
 // -------------------------------Player Movement Functions--------------------------------
 
@@ -215,6 +183,9 @@ crosshair.style.background = 'red';
 crosshair.style.borderRadius = '50%';
 crosshair.style.zIndex = '1'; // Ensure it's above other elements
 
+// Append the crosshair to the container
+
+
 
 // -------------------------------Player Controls--------------------------------
 
@@ -235,35 +206,24 @@ document.addEventListener('keyup', (event) => {
 document.addEventListener('mousedown', () => {
 	mouseTime = performance.now();
 	console.log('Mouse down!');
-
-
-	if (document.body.requestPointerLock && gameStarted === true) {
-		document.body.requestPointerLock();
-	}
-
 	// Calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
 	const mouse = new THREE.Vector2();
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-
 	// Update the picking ray with the camera and mouse position
-	if (contentShown === false) {
-		raycaster.setFromCamera(mouse, camera);
-		console.log("contentShown right before raycast:" + contentShown)
-		raycast();
-	}
+	raycaster.setFromCamera(mouse, camera);
+	raycast();
 
 	// Calculate objects intersecting the picking ray
 	const intersects = raycaster.intersectObjects(scene.children);
 
-	for (let i = 0; i < intersects.length && contentShown !== true; i++) {
+	for (let i = 0; i < intersects.length; i++) {
 		if (intersects[i].object === addButton) {
 			raycastTarget = intersects[i].object;
 			pressButton(intersects[i].object);
 			raycastTarget.userData.isPressed = true;
-			fetchTemplate('add-picture.html');
 			// Button was clicked, perform action
 			console.log('Add Button clicked!');
 			// Add your button click logic here
@@ -272,7 +232,6 @@ document.addEventListener('mousedown', () => {
 			raycastTarget = intersects[i].object;
 			pressButton(intersects[i].object);
 			raycastTarget.userData.isPressed = true;
-			fetchTemplate('login.html');
 			// Button was clicked, perform action
 			console.log('Update Button clicked!');
 			// Add your button click logic here
@@ -281,12 +240,11 @@ document.addEventListener('mousedown', () => {
 			raycastTarget = intersects[i].object;
 			pressButton(intersects[i].object);
 			raycastTarget.userData.isPressed = true;
-			fetchTemplate('delete.html');
 			// Button was clicked, perform action
 			console.log('Delete Button clicked!');
 			// Add your button click logic here
 		}
-
+		
 	}
 });
 
@@ -299,7 +257,6 @@ document.addEventListener('mouseup', () => {
 		unpressButton(raycastTarget);
 		raycastTarget = null;
 	}
-	console.log("Game Started: " + gameStarted);
 });
 
 document.body.addEventListener('mousemove', (event) => {
@@ -312,8 +269,6 @@ document.body.addEventListener('mousemove', (event) => {
 
 document.addEventListener('keydown', (event) => {
 	if (event.code === 'Escape') {
-		menu.style.display = 'flex';
-		gameStarted = false;
 		// Disable controls
 		keyStates['KeyW'] = false;
 		keyStates['KeyS'] = false;
@@ -321,8 +276,8 @@ document.addEventListener('keydown', (event) => {
 		keyStates['KeyD'] = false;
 		keyStates['Space'] = false;
 		// Show menu
-		console.log('Escape key pressed!');
-		
+		menu.style.display = 'flex';
+		container.removeChild(crosshair);
 	}
 });
 
@@ -348,10 +303,19 @@ function controls(deltaTime) {
 
 	if (playerOnFloor) {
 		if (keyStates['Space']) {
-			playerVelocity.y = 9;
+			playerVelocity.y = 5;
 		}
 	}
 }
+
+// -------------------------------Menu Setup--------------------------------
+
+const menu = document.getElementById('menu');
+menu.addEventListener('click', () => {
+	menu.style.display = 'none';
+	document.body.requestPointerLock();
+	container.appendChild(crosshair);
+});
 
 
 // -------------------------------Window Resize-------------------------------
@@ -376,9 +340,9 @@ addButton.position.set(-3.2, -5, 5.2); // Set button position
 updateButton.position.set(-3.2, -5.4, 5.2); // Set button position
 deleteButton.position.set(-3.2, -5.8, 5.2); // Set button position
 
-addButton.userData.isCRUDButton = true;
-updateButton.userData.isCRUDButton = true;
-deleteButton.userData.isCRUDButton = true;
+addButton.userData.isButton = true;
+updateButton.userData.isButton = true;
+deleteButton.userData.isButton = true;
 
 addButton.userData.isPressed = false;
 updateButton.userData.isPressed = false;
@@ -417,57 +381,7 @@ function pressButton(button) {
 
 function unpressButton(button) {
 	button.position.z -= button.geometry.parameters.height / 2; // Depress half the height
-	document.exitPointerLock();
 }
-
-const dynamicContent = document.getElementById('dynamicContent');
-function fetchTemplate(templateName) {
-	fetch(`http://localhost:8080/templates/${templateName}`)
-		.then(response => response.text())
-		.then(html => {
-			dynamicContent.innerHTML = html;
-			showDynamicContent();
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});
-	console.log('Template fetched!');
-	console.log(`http://localhost:8080/templates/${templateName}`);
-}
-
-function showDynamicContent() {
-	dynamicContent.style.display = 'flex';
-	exitButton.style.display = 'block';
-	contentShown = true;
-	if(contentShown === true){
-	keyStates['KeyW'] = false;
-	keyStates['KeyS'] = false;
-	keyStates['KeyA'] = false;
-	keyStates['KeyD'] = false;
-	keyStates['Space'] = false;
-	gameStarted = false;
-	}
-}
-
-
-function hideDynamicContent() {
-	dynamicContent.style.display = 'none';
-	exitButton.style.display = 'none';
-	document.body.requestPointerLock();
-	contentShown = false;
-	gameStarted = true;
-}
-
-
-const exitButton = document.getElementById('exitDCButton');
-console.log("Created exit button: " + exitButton)
-exitButton.addEventListener('click', function () {
-	hideDynamicContent();
-	console.log('Exit Button clicked!');
-});
-
-
-
 
 
 
@@ -702,31 +616,3 @@ function animate() {
 	stats.update();
 	requestAnimationFrame(animate);
 }
-
-// -------------------------------Database Access Setup--------------------------------
-
-
-
-function getFile() {
-	const fileName = dataItem;
-	fetch(`http://localhost:8080/getFileByFileName/${fileName}`, {
-		method: 'GET'
-	})
-		.then(response => response.blob())
-		.then(image => {
-			// Create a local URL of the image
-			const imageLocalURL = URL.createObjectURL(image);
-
-			// Use the local URL of the image for your needs, e.g., display the image
-			const imgElement = document.createElement('img');
-			imgElement.src = imageLocalURL;
-			document.body.appendChild(imgElement);
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});
-}
-
-
-
-// -------------------------------End of File--------------------------------

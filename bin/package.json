@@ -1,0 +1,22 @@
+{
+  "name": "bulletin-board",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/williamsteinmetz/bulletin-board.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/williamsteinmetz/bulletin-board/issues"
+  },
+  "homepage": "https://github.com/williamsteinmetz/bulletin-board#readme",
+  "dependencies": {
+    "three": "^0.163.0"
+  }
+}

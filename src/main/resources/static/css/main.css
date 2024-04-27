@@ -1,0 +1,41 @@
+ul
+{
+    list-style: none;
+    padding-left: none;
+}
+
+img
+{
+    height: 70px;
+    width: 70px;
+    background-color: black;
+}
+
+#navbar
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: black;
+    color: white;
+    padding: 15px;
+}
+
+.navbar_menu
+{
+    display: flex;
+}
+
+.navbar_menu_item
+{
+    padding: 8px 12px;
+    margin: 0 4px;
+    cursor: pointer;
+    font-size: 30px;
+    border-radius: 5px;
+}
+
+.navbar_menu_item:hover
+{
+    background-color: green;
+}

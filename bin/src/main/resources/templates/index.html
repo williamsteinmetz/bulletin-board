@@ -38,14 +38,12 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            z-index: 11;
         }
 
         #instructions {
             width: 30%;
-            height: auto;
+            height: 22.5%;
             background-color: rgba(194, 194, 194, 0.651);
-            padding: 1em;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -53,46 +51,6 @@
             text-align: center;
             font-size: 1.5em;
             cursor: pointer;
-        }
-
-        #dcContainer {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 5;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #dynamicContent {
-            position: relative;
-            display: none;
-            width: 80%;
-            height: 80%;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(230, 230, 230, 0.795);
-        }
-
-        #exitDCButton {
-            height: 3em;
-            width: 10em;
-            display: flex;
-            margin-top: 2em;
-            align-items: center;
-            justify-content: center;
-            padding: auto;
-            padding: 10px;
-            background-color: rgb(73, 73, 73);
-            color: rgb(230, 230, 230);
-            cursor: pointer;
-            z-index: 15;
-            display: none;
-
         }
     </style>
     <script type="importmap">
@@ -113,22 +71,16 @@
 </head>
 <div id="menu">
     <div id="instructions">
-        <h3>Howdy!</h3>
-        <p>You can use the MOUSE to look around</p>
-        <h4>&</h4>
+        <p>MOUSE to look around and to throw balls</p>
         <p>WASD to move and SPACE to jump</p>
-        <button id="startButton">Start Game</button>
+        <button onclick="startGame()">Start Game</button>
     </div>
 
 </div>
-<div id="container">
-    <div id="dcContainer">
-        <div id="dynamicContent">
-        </div>
-        <button id="exitDCButton">Exit</button>
-    </div>
+<div id="container"></div>
 
-</div>
+
+
 
 <script type="module" src="../js/scene.js"></script>
 </body>
