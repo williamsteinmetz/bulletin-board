@@ -6,39 +6,51 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Column;
-import java.sql.Date;
+import javax.persistence.Table;
+import java.sql.Timestamp;
 
 @Entity
+@Table(name = "bulletin_board_files")
 public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "file_name", nullable = false, length = 255)
     private String fileName;
+
+    @Column(name = "file_type", length = 50)
     private String fileType;
+
+    @Column(name = "file_size")
     private Long fileSize; // File size in bytes
 
-    @Column(nullable = true)
+    @Lob
+    @Column(name = "image_data")
+    private byte[] imageData; // Image data
+
+    @Column(name = "width")
     private Integer width; // Image width in pixels
 
-    @Column(nullable = true)
+    @Column(name = "height")
     private Integer height; // Image height in pixels
 
-    private Date fileUploadedOn;
+    @Column(name = "uploaded_at", insertable = false, updatable = false)
+    private Timestamp uploadedAt; // Timestamp of file upload
 
-    @Lob
-    private byte[] data; // Image data
+    // No-argument constructor
+    public File() {
+    }
 
     // Constructor for image files
     public File(String fileName, String fileType, Long fileSize, byte[] imageData, Integer width, Integer height) {
-		this.fileName = fileName;
-		this.fileType = fileType;
-		this.fileSize = fileSize;
-		this.data = imageData;
-		this.width = width;
-		this.height = height;
-		this.fileUploadedOn = new Date(System.currentTimeMillis());
-	}
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileSize = fileSize;
+        this.imageData = imageData;
+        this.width = width;
+        this.height = height;
+    }
 
     // Getters and setters
     public Integer getId() {
@@ -73,6 +85,14 @@ public class File {
         this.fileSize = fileSize;
     }
 
+    public byte[] getImageData() {
+        return imageData;
+    }
+
+    public void setImageData(byte[] imageData) {
+        this.imageData = imageData;
+    }
+
     public Integer getWidth() {
         return width;
     }
@@ -89,19 +109,11 @@ public class File {
         this.height = height;
     }
 
-    public Date getFileUploadedOn() {
-        return fileUploadedOn;
+    public Timestamp getUploadedAt() {
+        return uploadedAt;
     }
 
-    public void setFileUploadedOn(Date fileUploadedOn) {
-        this.fileUploadedOn = fileUploadedOn;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
+    public void setUploadedAt(Timestamp uploadedAt) {
+        this.uploadedAt = uploadedAt;
     }
 }

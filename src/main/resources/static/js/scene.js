@@ -80,9 +80,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.VSMShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-if(container.child !== renderer.domElement) {
+if (container.child !== renderer.domElement) {
 	container.appendChild(renderer.domElement);
-} 
+}
 
 
 // -------------------------------Stats Setup--------------------------------
@@ -714,7 +714,7 @@ const fileInput = document.getElementById('selectedImage');
 const uploadButton = document.getElementById('uploadImageButton');
 let fileNameInput = document.getElementById('fileName');
 
-if(contentShown === true) {
+if (contentShown === true) {
 	fileInput.addEventListener('change', (event) => {
 		const file = event.target.files[0];
 		if (file) {
@@ -737,47 +737,47 @@ if(contentShown === true) {
 
 function uploadImage() {
 	console.log("uploadImage() called");
-    const file = fileInput.files[0];
+	const file = fileInput.files[0];
 	console.log(fileInput.files[0]);
-    if (!file) {
-        console.error('No file selected.');
-        return;
-    }	
+	if (!file) {
+		console.error('No file selected.');
+		return;
+	}
 	console.log(fileName)
 
-    const formData = new FormData();
-    formData.append('file', file);
+	const formData = new FormData();
+	formData.append('file', file);
 	formData.append('fileName', fileNameInput.value);
-    formData.append('fileType', file.fileType);
-    formData.append('fileSize', file.size);
+	formData.append('fileType', file.fileType);
+	formData.append('fileSize', file.size);
 
-    fetch('/add', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+	fetch('/add', {
+		method: 'POST',
+		body: formData
+	})
+		.then(response => response.json())
+		.then(data => {
+			console.log('Success:', data);
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
 }
 
 function getFile(fileName) {
-    fetch(`http://localhost:8080/getFileByFileName/${fileName}`, {
-        method: 'GET'
-    })
-    .then(response => response.blob())
-    .then(image => {
-        const imageLocalURL = URL.createObjectURL(image);
-        const imgElement = document.createElement('img');
-        imgElement.src = imageLocalURL;
-        document.body.appendChild(imgElement);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+	fetch(`http://localhost:8080/getFileByFileName/${fileName}`, {
+		method: 'GET'
+	})
+		.then(response => response.blob())
+		.then(image => {
+			const imageLocalURL = URL.createObjectURL(image);
+			const imgElement = document.createElement('img');
+			imgElement.src = imageLocalURL;
+			document.body.appendChild(imgElement);
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
 }
 
 
