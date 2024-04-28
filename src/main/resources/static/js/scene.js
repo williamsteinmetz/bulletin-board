@@ -80,7 +80,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.VSMShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-container.appendChild(renderer.domElement);
+if(container.child !== renderer.domElement) {
+	container.appendChild(renderer.domElement);
+} 
+
 
 // -------------------------------Stats Setup--------------------------------
 
@@ -322,7 +325,7 @@ document.addEventListener('keydown', (event) => {
 		keyStates['Space'] = false;
 		// Show menu
 		console.log('Escape key pressed!');
-		
+
 	}
 });
 
@@ -372,9 +375,9 @@ const addButton = new THREE.Mesh(geometry, material); // Create the button mesh
 const updateButton = new THREE.Mesh(geometry, material); // Create the button mesh
 const deleteButton = new THREE.Mesh(geometry, material); // Create the button mesh
 
-addButton.position.set(-3.2, -5, 5.2); // Set button position
-updateButton.position.set(-3.2, -5.4, 5.2); // Set button position
-deleteButton.position.set(-3.2, -5.8, 5.2); // Set button position
+addButton.position.set(-3.2, -3.6, 5.2); // Set button position
+updateButton.position.set(-3.2, -4, 5.2); // Set button position
+deleteButton.position.set(-3.2, -4.4, 5.2); // Set button position
 
 addButton.userData.isCRUDButton = true;
 updateButton.userData.isCRUDButton = true;
@@ -422,10 +425,11 @@ function unpressButton(button) {
 
 const dynamicContent = document.getElementById('dynamicContent');
 function fetchTemplate(templateName) {
-	fetch(`http://localhost:8080/templates/${templateName}`)
+	const url = `http://localhost:8080/templates/${templateName}`;
+	fetch(url)
 		.then(response => response.text())
 		.then(html => {
-			dynamicContent.innerHTML = html;
+			dynamicContent.src = url;
 			showDynamicContent();
 		})
 		.catch((error) => {
@@ -437,15 +441,15 @@ function fetchTemplate(templateName) {
 
 function showDynamicContent() {
 	dynamicContent.style.display = 'flex';
-	exitButton.style.display = 'block';
+	exitButton.style.display = 'flex';
 	contentShown = true;
-	if(contentShown === true){
-	keyStates['KeyW'] = false;
-	keyStates['KeyS'] = false;
-	keyStates['KeyA'] = false;
-	keyStates['KeyD'] = false;
-	keyStates['Space'] = false;
-	gameStarted = false;
+	if (contentShown === true) {
+		keyStates['KeyW'] = false;
+		keyStates['KeyS'] = false;
+		keyStates['KeyA'] = false;
+		keyStates['KeyD'] = false;
+		keyStates['Space'] = false;
+		gameStarted = false;
 	}
 }
 
@@ -706,25 +710,74 @@ function animate() {
 // -------------------------------Database Access Setup--------------------------------
 
 
+const fileInput = document.getElementById('selectedImage');
+const uploadButton = document.getElementById('uploadImageButton');
+let fileNameInput = document.getElementById('fileName');
 
-function getFile() {
-	const fileName = dataItem;
-	fetch(`http://localhost:8080/getFileByFileName/${fileName}`, {
-		method: 'GET'
-	})
-		.then(response => response.blob())
-		.then(image => {
-			// Create a local URL of the image
-			const imageLocalURL = URL.createObjectURL(image);
+if(contentShown === true) {
+	fileInput.addEventListener('change', (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			console.log("File selected:", file.name);
+			uploadButton.disabled = false; // Enable the upload button when file is selected
+		} else {
+			uploadButton.disabled = true; // Disable the upload button if no file is selected
+		}
+	});
 
-			// Use the local URL of the image for your needs, e.g., display the image
-			const imgElement = document.createElement('img');
-			imgElement.src = imageLocalURL;
-			document.body.appendChild(imgElement);
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});
+	uploadButton.addEventListener('click', (event) => {
+		event.preventDefault(); // Prevent the default form submission
+		uploadImage();
+	});
+}
+
+
+
+
+
+function uploadImage() {
+	console.log("uploadImage() called");
+    const file = fileInput.files[0];
+	console.log(fileInput.files[0]);
+    if (!file) {
+        console.error('No file selected.');
+        return;
+    }	
+	console.log(fileName)
+
+    const formData = new FormData();
+    formData.append('file', file);
+	formData.append('fileName', fileNameInput.value);
+    formData.append('fileType', file.fileType);
+    formData.append('fileSize', file.size);
+
+    fetch('/add', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function getFile(fileName) {
+    fetch(`http://localhost:8080/getFileByFileName/${fileName}`, {
+        method: 'GET'
+    })
+    .then(response => response.blob())
+    .then(image => {
+        const imageLocalURL = URL.createObjectURL(image);
+        const imgElement = document.createElement('img');
+        imgElement.src = imageLocalURL;
+        document.body.appendChild(imgElement);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 
