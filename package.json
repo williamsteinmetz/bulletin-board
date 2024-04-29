@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/williamsteinmetz/bulletin-board#readme",
   "dependencies": {
+    "pg": "^8.11.5",
     "three": "^0.163.0"
   }
 }

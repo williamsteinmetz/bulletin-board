@@ -80,7 +80,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.VSMShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-container.appendChild(renderer.domElement);
+if (container.child !== renderer.domElement) {
+	container.appendChild(renderer.domElement);
+}
+
 
 // -------------------------------Stats Setup--------------------------------
 
@@ -232,62 +235,49 @@ document.addEventListener('keyup', (event) => {
 	keyStates[event.code] = false;
 });
 
-document.addEventListener('mousedown', () => {
-	mouseTime = performance.now();
-	console.log('Mouse down!');
+document.addEventListener('mousedown', (event) => {
+    mouseTime = performance.now();
+    console.log('Mouse down!');
 
+    if (document.body.requestPointerLock && gameStarted === true) {
+        document.body.requestPointerLock();
+    }
 
-	if (document.body.requestPointerLock && gameStarted === true) {
-		document.body.requestPointerLock();
-	}
+    const mouse = new THREE.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-	// Calculate mouse position in normalized device coordinates
-	// (-1 to +1) for both components
-	const mouse = new THREE.Vector2();
-	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    if (contentShown === false) {
+        raycaster.setFromCamera(mouse, camera);
+        console.log("contentShown right before raycast:" + contentShown)
+        raycast();
+    }
 
+    const intersects = raycaster.intersectObjects(scene.children);
 
-	// Update the picking ray with the camera and mouse position
-	if (contentShown === false) {
-		raycaster.setFromCamera(mouse, camera);
-		console.log("contentShown right before raycast:" + contentShown)
-		raycast();
-	}
-
-	// Calculate objects intersecting the picking ray
-	const intersects = raycaster.intersectObjects(scene.children);
-
-	for (let i = 0; i < intersects.length && contentShown !== true; i++) {
-		if (intersects[i].object === addButton) {
-			raycastTarget = intersects[i].object;
-			pressButton(intersects[i].object);
-			raycastTarget.userData.isPressed = true;
-			fetchTemplate('add-picture.html');
-			// Button was clicked, perform action
-			console.log('Add Button clicked!');
-			// Add your button click logic here
-		}
-		if (intersects[i].object === updateButton) {
-			raycastTarget = intersects[i].object;
-			pressButton(intersects[i].object);
-			raycastTarget.userData.isPressed = true;
-			fetchTemplate('login.html');
-			// Button was clicked, perform action
-			console.log('Update Button clicked!');
-			// Add your button click logic here
-		}
-		if (intersects[i].object === deleteButton) {
-			raycastTarget = intersects[i].object;
-			pressButton(intersects[i].object);
-			raycastTarget.userData.isPressed = true;
-			fetchTemplate('delete.html');
-			// Button was clicked, perform action
-			console.log('Delete Button clicked!');
-			// Add your button click logic here
-		}
-
-	}
+    for (let i = 0; i < intersects.length && contentShown !== true; i++) {
+        if (intersects[i].object === addButton) {
+            raycastTarget = intersects[i].object;
+            pressButton(intersects[i].object);
+            raycastTarget.userData.isPressed = true;
+            fetchTemplate('add'); // Assuming 'index' corresponds to 'add-picture.html'
+            console.log('Add Button clicked!');
+        }
+        if (intersects[i].object === updateButton) {
+            raycastTarget = intersects[i].object;
+            pressButton(intersects[i].object);
+            raycastTarget.userData.isPressed = true;
+            fetchTemplate('list-images'); // Corresponds to 'list-images.html'
+            console.log('See All Button clicked!');
+        }
+        if (intersects[i].object === deleteButton) {
+            raycastTarget = intersects[i].object;
+            pressButton(intersects[i].object);
+            raycastTarget.userData.isPressed = true;
+            fetchTemplate('delete'); // Corresponds to 'delete.html'
+            console.log('Delete Button clicked!');
+        }
+    }
 });
 
 document.addEventListener('mouseup', () => {
@@ -322,7 +312,7 @@ document.addEventListener('keydown', (event) => {
 		keyStates['Space'] = false;
 		// Show menu
 		console.log('Escape key pressed!');
-		
+
 	}
 });
 
@@ -372,9 +362,9 @@ const addButton = new THREE.Mesh(geometry, material); // Create the button mesh
 const updateButton = new THREE.Mesh(geometry, material); // Create the button mesh
 const deleteButton = new THREE.Mesh(geometry, material); // Create the button mesh
 
-addButton.position.set(-3.2, -5, 5.2); // Set button position
-updateButton.position.set(-3.2, -5.4, 5.2); // Set button position
-deleteButton.position.set(-3.2, -5.8, 5.2); // Set button position
+addButton.position.set(-3.2, -3.6, 5.2); // Set button position
+updateButton.position.set(-3.2, -4, 5.2); // Set button position
+deleteButton.position.set(-3.2, -4.4, 5.2); // Set button position
 
 addButton.userData.isCRUDButton = true;
 updateButton.userData.isCRUDButton = true;
@@ -420,38 +410,53 @@ function unpressButton(button) {
 	document.exitPointerLock();
 }
 
-const dynamicContent = document.getElementById('dynamicContent');
-function fetchTemplate(templateName) {
-	fetch(`http://localhost:8080/templates/${templateName}`)
-		.then(response => response.text())
-		.then(html => {
-			dynamicContent.innerHTML = html;
-			showDynamicContent();
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});
-	console.log('Template fetched!');
-	console.log(`http://localhost:8080/templates/${templateName}`);
+const dynamicContentContainer = document.getElementById('dcContainer');
+
+function fetchTemplate(type) {
+    const iframe = document.getElementById('dynamicContent');
+    const url = `http://localhost:8080/getIframeContent?type=${type}`;
+    iframe.src = url;
+
+    console.log(`Iframe src set to fetch content for url: ${url}`);
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(html => {
+            iframe.srcdoc = html; // Set the iframe content directly
+            showDynamicContent();
+            console.log(`Iframe updated to show content for type: ${type}`);
+        })
+        .catch(error => {
+            console.error('Error fetching template:', error);
+            hideDynamicContent();
+            iframe.srcdoc = ''; // Clear the iframe content
+        });
+
+    console.log('Template fetch initiated:', url);
 }
 
 function showDynamicContent() {
-	dynamicContent.style.display = 'flex';
-	exitButton.style.display = 'block';
+	dynamicContentContainer.style.display = 'flex';
+	exitButton.style.display = 'flex';
 	contentShown = true;
-	if(contentShown === true){
-	keyStates['KeyW'] = false;
-	keyStates['KeyS'] = false;
-	keyStates['KeyA'] = false;
-	keyStates['KeyD'] = false;
-	keyStates['Space'] = false;
-	gameStarted = false;
+	if (contentShown === true) {
+		keyStates['KeyW'] = false;
+		keyStates['KeyS'] = false;
+		keyStates['KeyA'] = false;
+		keyStates['KeyD'] = false;
+		keyStates['Space'] = false;
+		gameStarted = false;
 	}
 }
 
 
 function hideDynamicContent() {
-	dynamicContent.style.display = 'none';
+	dynamicContentContainer.style.display = 'none';
 	exitButton.style.display = 'none';
 	document.body.requestPointerLock();
 	contentShown = false;
@@ -502,7 +507,7 @@ function createTextLabel(text, position) {
 
 // Position the labels above the buttons
 createTextLabel('Add', new THREE.Vector3(addButton.position.x, addButton.position.y + 0.5, addButton.position.z));
-createTextLabel('Update', new THREE.Vector3(updateButton.position.x, updateButton.position.y + 0.5, updateButton.position.z));
+createTextLabel('See All', new THREE.Vector3(updateButton.position.x, updateButton.position.y + 0.5, updateButton.position.z));
 createTextLabel('Delete', new THREE.Vector3(deleteButton.position.x, deleteButton.position.y + 0.5, deleteButton.position.z));
 
 // -------------------------------Throw Spheres Functions--------------------------------
@@ -706,23 +711,72 @@ function animate() {
 // -------------------------------Database Access Setup--------------------------------
 
 
+const fileInput = document.getElementById('selectedImage');
+const uploadButton = document.getElementById('uploadImageButton');
+let fileNameInput = document.getElementById('fileName');
 
-function getFile() {
-	const fileName = dataItem;
+if (contentShown === true) {
+	fileInput.addEventListener('change', (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			console.log("File selected:", file.name);
+			uploadButton.disabled = false; // Enable the upload button when file is selected
+		} else {
+			uploadButton.disabled = true; // Disable the upload button if no file is selected
+		}
+	});
+
+	uploadButton.addEventListener('click', (event) => {
+		event.preventDefault(); // Prevent the default form submission
+		uploadImage();
+	});
+}
+
+
+
+
+
+function uploadImage() {
+	console.log("uploadImage() called");
+	const file = fileInput.files[0];
+	console.log(fileInput.files[0]);
+	if (!file) {
+		console.error('No file selected.');
+		return;
+	}
+	console.log(fileName)
+
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('fileName', fileNameInput.value);
+	formData.append('fileType', file.fileType);
+	formData.append('fileSize', file.size);
+
+	fetch('/add', {
+		method: 'POST',
+		body: formData
+	})
+		.then(response => response.json())
+		.then(data => {
+			console.log('Success:', data);
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
+}
+
+function getFile(fileName) {
 	fetch(`http://localhost:8080/getFileByFileName/${fileName}`, {
 		method: 'GET'
 	})
 		.then(response => response.blob())
 		.then(image => {
-			// Create a local URL of the image
 			const imageLocalURL = URL.createObjectURL(image);
-
-			// Use the local URL of the image for your needs, e.g., display the image
 			const imgElement = document.createElement('img');
 			imgElement.src = imageLocalURL;
 			document.body.appendChild(imgElement);
 		})
-		.catch((error) => {
+		.catch(error => {
 			console.error('Error:', error);
 		});
 }

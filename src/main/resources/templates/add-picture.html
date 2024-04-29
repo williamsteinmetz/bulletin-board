@@ -1,17 +1,120 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<title>Upload</title>
-	</head>
-	<body>
-	<p>Upload a picture to the database</p>
-		<form action="http://localhost:8080/" method="get">
-				<label>Picture Name: <input type="text" name="name" size="30" maxlength="255"></label><br />
-				<label>File Path: <input type="text" name="path" size="30" maxlength="255"></label><br />
-				<label>File Extension: <input type="text" name="ext" size="30" maxlength="10"></label><br />
-				<label>Size (in kilobytes): <input type="text" name="size" size="30" maxlength="10"></label><br />
-				<br/>
-				<input type="submit" value="Upload" />
-		</form>
-	</body>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Upload</title>
+	<style>
+		label {
+			font-weight: bold;
+		}
+
+		#uploadImageButton {
+			height: 3em;
+			width: 10em;
+			display: flex;
+			margin-top: 2em;
+			align-items: center;
+			justify-content: center;
+			padding: 10px;
+			background-color: rgb(73, 73, 73);
+			color: rgb(230, 230, 230);
+			cursor: pointer;
+			z-index: 50;
+		}
+
+		#previewImage {
+			max-width: 50%;
+			height: auto;
+			margin: 20px auto;
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	<form th:action="@{/add}" id="imageForm" method="post" enctype="multipart/form-data"
+		onsubmit="submitForm(); return false;">
+		<label>Picture Name: <span><input type="text" name="fileName" id="fileName"
+					th:value="${fileName}"></span></label><br />
+		<label>File Type: <span id="fileType"></span></label><br />
+		<label>Size (in kilobytes): <span id="fileSize"></span></label><br />
+		<label>Width (px): <input type="number" name="width" id="width"></label><br />
+		<label>Height (px): <input type="number" name="height" id="height"></label><br />
+		<br />
+		<label>Upload Image: <input type="file" name="file" accept="image/png, image/jpeg" id="selectedImage"
+				onchange="updateImageDisplay()"></label><br />
+		<button type="submit" id="uploadImageButton" disabled>Upload</button>
+	</form>
+	<img id="previewImage" src="" alt="Image preview...">
+	<script>
+		function submitForm() {
+			const formData = new FormData(document.getElementById('imageForm'));
+			const fileInput = document.getElementById('selectedImage');
+			const file = fileInput.files[0];
+
+			if (file) {
+				formData.append('file', file);
+				formData.append('fileName', file.name);
+				formData.append('fileType', file.type);
+				formData.append('fileSize', file.size);
+
+				const url = 'http://localhost:8080/add';
+
+				fetch(url, {
+					method: 'POST',
+					body: formData
+				})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Network response was not ok');
+						}
+						return response;
+					})
+					.then(data => {
+						console.log('Success:', data);
+						alert('Image uploaded successfully!');
+					})
+					.catch(error => {
+						console.error('Error:', error);
+						alert('Failed to upload image. Please try again.');
+					});
+			} else {
+				alert('No file selected. Please select a file to upload.');
+			}
+		}
+
+		function updateImageDisplay() {
+			const fileInput = document.getElementById('selectedImage');
+			const file = fileInput.files[0];
+			const uploadButton = document.getElementById('uploadImageButton');
+			const previewImage = document.getElementById('previewImage');
+			if (file) {
+				const img = new Image();
+				img.onload = function () {
+					document.getElementById('width').value = this.width;
+					document.getElementById('height').value = this.height;
+				};
+				img.src = URL.createObjectURL(file);
+				// Update spans with file information
+				document.getElementById('fileName').value = file.name;
+				document.getElementById('fileType').textContent = file.type;
+				document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2); // Convert bytes to kilobyte
+
+				const reader = new FileReader();
+				reader.onload = function (e) {
+					previewImage.src = e.target.result;
+					previewImage.style.display = 'block';
+				};
+				reader.readAsDataURL(file);
+				uploadButton.disabled = false;
+			} else {
+				uploadButton.disabled = true;
+				document.getElementById('previewImage').style.display = 'none';
+				document.getElementById('fileType').textContent = '';
+				document.getElementById('fileSize').textContent = '';
+			}
+		}
+	</script>
+</body>
+
 </html>
