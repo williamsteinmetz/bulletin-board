@@ -85,36 +85,38 @@ public class ImageController {
 		try {
 			// Retrieve the existing image from the database
 			Image existingImage = imageService.getFileById(id);
-	
+
 			if (existingImage == null) {
 				return ResponseEntity.notFound().build();
 			}
-	
+
 			// Update the image properties with the new values
 			existingImage.setFileName(fileName);
 			existingImage.setFileType(fileType);
 			existingImage.setFileSize(fileSize);
 			existingImage.setWidth(width);
 			existingImage.setHeight(height);
-	
+
 			// Update the image in the database
 			imageService.updateImage(existingImage);
-	
+
 			return ResponseEntity.ok("Image updated successfully");
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating image: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Error updating image: " + e.getMessage());
 		}
 	}
 
 	@PostMapping("/images/delete")
-public ResponseEntity<?> deleteSelectedImages(@RequestBody List<Integer> imageIds) {
-    try {
-        imageService.deleteImagesByIds(imageIds);
-        return ResponseEntity.ok().build();
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting images: " + e.getMessage());
-    }
-}
+	public ResponseEntity<?> deleteSelectedImages(@RequestBody List<Integer> imageIds) {
+		try {
+			imageService.deleteImagesByIds(imageIds);
+			return ResponseEntity.ok().build();
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Error deleting images: " + e.getMessage());
+		}
+	}
 
 	@GetMapping("/getIframeContent")
 	public String getIframeContent(@RequestParam(required = false) String type, Model model) {
