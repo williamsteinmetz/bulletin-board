@@ -32,16 +32,6 @@ public class ImageService {
     public void updateImage(Image image) {
     imageRepository.save(image);
     }
-    
-    public ResponseEntity<?> deleteFileByFileId(Integer id) {
-        Image image = imageRepository.getFileById(id);
-        if (image != null) {
-            imageRepository.deleteFileByFileId(id);
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     public void deleteImagesByIds(List<Integer> imageIds) {
         imageRepository.deleteImagesByIds(imageIds);
