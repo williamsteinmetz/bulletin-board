@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "bulletin_board_files")
-public class File {
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -39,11 +39,11 @@ public class File {
     private Timestamp uploadedAt; // Timestamp of file upload
 
     // No-argument constructor
-    public File() {
+    public Image() {
     }
 
     // Constructor for image files
-    public File(String fileName, String fileType, Long fileSize, byte[] imageData, Integer width, Integer height) {
+    public Image(String fileName, String fileType, Long fileSize, byte[] imageData, Integer width, Integer height) {
         this.fileName = fileName;
         this.fileType = fileType;
         this.fileSize = fileSize;

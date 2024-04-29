@@ -72,6 +72,11 @@
       <version>3.0.3</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.15</version>
+</dependency>
   </dependencies>
   <build>
     <plugins>
