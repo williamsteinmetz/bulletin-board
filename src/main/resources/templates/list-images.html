@@ -247,7 +247,13 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        location.reload(); // Refresh the page after successful deletion
+                        // Remove the deleted image cards from the DOM
+                        imageIds.forEach(id => {
+                            const imageCard = document.querySelector(`.image-card[data-id="${id}"]`);
+                            if (imageCard) {
+                                imageCard.remove();
+                            }
+                        });
                     } else {
                         throw new Error('Error deleting images');
                     }
