@@ -22,7 +22,7 @@ scene.background = new THREE.Color(0x88ccee);
 scene.fog = new THREE.Fog(0x88ccee, 0, 50);
 
 // Create the camera
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 5000);
 camera.rotation.order = 'YXZ';
 
 camera.position.set(0, 0, -10);
@@ -39,6 +39,89 @@ function limitCameraRotation() {
 }
 
 
+// ------------------------------NIGHT MODE----------------------------
+
+function createNightSky() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+
+    const starVertices = [];
+    for (let i = 0; i < 10000; i++) {
+        const x = THREE.MathUtils.randFloatSpread(2000);
+        const y = THREE.MathUtils.randFloatSpread(1000) + 500;
+        const z = THREE.MathUtils.randFloatSpread(2000);
+
+        // Calculate the distance from the star to the center of the room
+        const distance = Math.sqrt(x * x + y * y + z * z);
+
+        // If the distance is less than 50 units, adjust the star's position
+        if (distance < 50) {
+            // Calculate the direction from the center of the room to the star
+            const direction = new THREE.Vector3(x, y, z).normalize();
+
+            // Set the star's position to be at least 50 units away from the center of the room
+            const newPosition = direction.multiplyScalar(50);
+            starVertices.push(newPosition.x, newPosition.y, newPosition.z);
+        } else {
+            starVertices.push(x, y, z);
+        }
+    }
+
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    stars.name = 'stars';
+    scene.add(stars);
+}
+
+function createMoon() {
+    const moonGeometry = new THREE.SphereGeometry(6, 64, 64);
+    const moonMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, emissive: 0xffffff,
+        emissiveIntensity: 5 });
+    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+    moon.position.set(75, 100, 75);
+    moon.name = 'moon';
+	scene.add(moon);
+
+	const moonLight = new THREE.PointLight(0xffffff, 1, 200);
+    moonLight.position.copy(moon.position);
+    scene.add(moonLight);
+}
+
+const nightBackgroundColor = new THREE.Color(0x000000);
+const nightFogColor = new THREE.Color(0x000000);
+
+let isNightScene = false;
+
+function toggleDayNight() {
+    if (isNightScene) {
+        // Switch to day scene
+        scene.background = new THREE.Color(0x88ccee);
+        scene.fog = new THREE.Fog(0x88ccee, 0, 5000);
+        scene.remove(scene.getObjectByName('stars'));
+        scene.remove(scene.getObjectByName('moon'));
+		scene.remove(wallLight1);
+    	scene.remove(wallLight1.target);
+		scene.remove(wallLight2);
+    	scene.remove(wallLight2.target);
+    } else {
+        // Switch to night scene
+        scene.background = nightBackgroundColor;
+        scene.fog = new THREE.Fog(nightFogColor, 0, 500);
+		scene.add(wallLight1);
+    	scene.add(wallLight1.target);
+		scene.add(wallLight2);
+    	scene.add(wallLight2.target);
+        createNightSky();
+        createMoon();
+    }
+    isNightScene = !isNightScene;
+}
+
+const toggleButton = document.getElementById('toggleButton');
+        toggleButton.addEventListener('click', () => {
+            toggleDayNight();
+        });
 
 // Add event listener for mouse movement
 
@@ -65,6 +148,24 @@ directionalLight.shadow.radius = 4;
 directionalLight.shadow.bias = -0.00006;
 scene.add(directionalLight);
 
+const wallLight1 = new THREE.SpotLight(0xffffff, 3, 100);
+wallLight1.position.set(-1.9, -1, 3);
+wallLight1.target.position.set(-1, -3, 5.2);
+wallLight1.angle = Math.PI / 4;
+wallLight1.penumbra = 0.5;
+wallLight1.castShadow = true;
+scene.add(wallLight1);
+scene.add(wallLight1.target);
+
+
+const wallLight2 = new THREE.SpotLight(0xffffff, 3, 100);
+wallLight2.position.set(2.5, -1, 3);
+wallLight2.target.position.set(2, -3, 5.2);
+wallLight2.angle = Math.PI / 4;
+wallLight2.penumbra = 0.5;
+wallLight2.castShadow = true;
+scene.add(wallLight2);
+scene.add(wallLight2.target);
 // -------------------------------Renderer Setup--------------------------------
 
 // Create the renderer
