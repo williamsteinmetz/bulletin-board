@@ -59,45 +59,62 @@ public class ImageController {
 	}
 
 	@GetMapping("/image/{id}/info")
-	public ResponseEntity<Image> getImageInfo(@PathVariable Integer id) {
+	public ResponseEntity<String> getImageInfo(@PathVariable Integer id) {
 		Image image = imageService.getFileById(id);
 		if (image != null) {
-			return ResponseEntity.ok(image);
+			String imageInfo = "id: " + image.getId() + "\n" +
+					"fileName: " + image.getFileName() + "\n" +
+					"fileType: " + image.getFileType() + "\n" +
+					"fileSize: " + image.getFileSize() + "\n" +
+					"width: " + image.getWidth() + "\n" +
+					"height: " + image.getHeight();
+			return ResponseEntity.ok(imageInfo);
 		} else {
 			return ResponseEntity.notFound().build();
 		}
 	}
 
 	@PutMapping("/image/{id}/update")
-	public ResponseEntity<Image> updateImageInfo(@PathVariable Integer id, @RequestBody Image updatedImage) {
+	public ResponseEntity<String> updateImageInfo(
+			@PathVariable Integer id,
+			@RequestParam("fileName") String fileName,
+			@RequestParam("fileType") String fileType,
+			@RequestParam("fileSize") Long fileSize,
+			@RequestParam("width") Integer width,
+			@RequestParam("height") Integer height) {
 		try {
 			// Retrieve the existing image from the database
 			Image existingImage = imageService.getFileById(id);
-
+	
 			if (existingImage == null) {
 				return ResponseEntity.notFound().build();
 			}
+	
 			// Update the image properties with the new values
-			existingImage.setFileName(updatedImage.getFileName());
-			existingImage.setFileType(updatedImage.getFileType());
-			existingImage.setFileSize(updatedImage.getFileSize());
-			existingImage.setWidth(updatedImage.getWidth());
-			existingImage.setHeight(updatedImage.getHeight());
-
+			existingImage.setFileName(fileName);
+			existingImage.setFileType(fileType);
+			existingImage.setFileSize(fileSize);
+			existingImage.setWidth(width);
+			existingImage.setHeight(height);
+	
 			// Update the image in the database
-			Image updatedImageResult = imageService.updateFileById(id, existingImage);
-
-			return ResponseEntity.ok(updatedImageResult);
+			imageService.updateImage(existingImage);
+	
+			return ResponseEntity.ok("Image updated successfully");
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(null);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating image: " + e.getMessage());
 		}
 	}
 
-	@DeleteMapping("/delete")
-	public ResponseEntity<?> deleteFile(@RequestParam Integer id) {
-		return imageService.deleteFileByFileId(id);
-	}
+	@PostMapping("/images/delete")
+public ResponseEntity<?> deleteSelectedImages(@RequestBody List<Integer> imageIds) {
+    try {
+        imageService.deleteImagesByIds(imageIds);
+        return ResponseEntity.ok().build();
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting images: " + e.getMessage());
+    }
+}
 
 	@GetMapping("/getIframeContent")
 	public String getIframeContent(@RequestParam(required = false) String type, Model model) {

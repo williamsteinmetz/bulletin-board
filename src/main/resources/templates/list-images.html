@@ -34,6 +34,10 @@
         .edit-form {
             margin-top: 20px;
         }
+
+        .delete-btn {
+            margin-top: 20px;
+        }
     </style>
 </head>
 
@@ -41,6 +45,7 @@
     <h1>Image Viewer</h1>
     <div class="image-container">
         <div th:each="image : ${images}" class="image-card" th:attr="data-id=${image.id}">
+            <input type="checkbox" class="image-checkbox" th:value="${image.id}" />
             <img th:src="@{/image/{id}(id=${image.id})}" alt="Image" width="200" />
             <p th:text="${image.fileName}"></p>
         </div>
@@ -52,11 +57,12 @@
         <p><strong>File Size:</strong> <span id="image-size"></span> bytes</p>
         <p><strong>Dimensions:</strong> <span id="image-dimensions"></span> pixels</p>
         <button id="edit-btn"><i class="fas fa-edit"></i> Edit</button>
+        <button id="delete-btn" class="delete-btn"><i class="fas fa-trash"></i> Delete Selected</button>
     </div>
     <div class="edit-form" style="display: none;">
         <h2>Edit Image Information</h2>
         <form id="edit-form">
-            <input type="hidden" id="edit-id" name="id" />
+            <input type="button" id="edit-id" name="id" disabled />
             <div>
                 <label for="edit-fileName">File Name:</label>
                 <input type="text" id="edit-fileName" name="fileName" required />
@@ -89,9 +95,19 @@
         const editBtn = document.getElementById('edit-btn');
         const cancelBtn = document.getElementById('cancel-btn');
         const editFormElement = document.getElementById('edit-form');
-        let formData = new FormData();
+
+        let fileId;
+        let fileName;
+        let fileType;
+        let fileSize;
+        let width;
+        let height;
+        let object = {};
+
+
 
         let selectedImageId = null;
+
 
         imageCards.forEach(card => {
             card.addEventListener('click', () => {
@@ -101,6 +117,8 @@
                 displayImageInfo(selectedImageId);
                 imageInfo.style.display = 'block';
                 editForm.style.display = 'none';
+
+                fileId = card.getAttribute('data-id')
             });
         });
 
@@ -117,14 +135,15 @@
 
         editFormElement.addEventListener('submit', (event) => {
             event.preventDefault();
-            const formData = new FormData(editFormElement);
-            updateImageInfo(formData);
+            updateImageInfo(imageInfo);
         });
 
         function displayImageInfo(id) {
             fetch(`/image/${id}/info`)
                 .then(response => response.text())
                 .then(data => {
+                    console.log(data)
+
                     // Update the UI with the retrieved image info
                     document.getElementById('image-name').textContent = data.fileName;
                     document.getElementById('image-type').textContent = data.fileType;
@@ -137,39 +156,104 @@
         }
 
         function populateEditForm(imageId) {
-            fetch(`/image/${imageId}`)
-                .then(response => response.json())
+            fetch(`/image/${imageId}/info`)
+                .then(response => response.text())
                 .then(data => {
-                    document.getElementById('edit-id').value = data.id;
-                    document.getElementById('edit-fileName').value = data.fileName;
-                    document.getElementById('edit-fileType').value = data.fileType;
-                    document.getElementById('edit-fileSize').value = data.fileSize;
-                    document.getElementById('edit-width').value = data.width;
-                    document.getElementById('edit-height').value = data.height;
+                    // Parse the plain text response and extract the image information
+                    const imageInfo = parseImageInfo(data);
+                    console.log("Image Info" + imageInfo);
+
+
+                    document.getElementById('edit-id').value = imageId; // Set the id value
+                    document.getElementById('edit-fileName').value = fileName;
+                    document.getElementById('edit-fileType').value = fileType;
+                    document.getElementById('edit-fileSize').value = fileSize;
+                    document.getElementById('edit-width').value = width;
+                    document.getElementById('edit-height').value = height;
+
+                })
+                .catch(error => {
+                    console.error('Error retrieving image info:', error);
                 });
         }
 
-        let object = {};
-        formData.forEach((value, key) => {
-            object[key] = value;
-        });
+        function parseImageInfo(data) {
+            // Parse the plain text response and extract the image information
+            const lines = data.split('\n');
+            const imageInfo = {};
 
-        let json = JSON.stringify(object);
+            lines.forEach(line => {
+                const [key, value] = line.split(':');
+                imageInfo[key.trim()] = value.trim();
+            });
 
-        function updateImageInfo(id, updatedImage) {
-            fetch(`/image/${id}/update`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: json
+            return imageInfo;
+        }
+
+        function updateImageInfo(formData) {
+            const id = document.getElementById('edit-id').value;
+            const fileName = document.getElementById('edit-fileName').value;
+            const fileType = document.getElementById('edit-fileType').value;
+            const fileSize = document.getElementById('edit-fileSize').value;
+            const width = document.getElementById('edit-width').value;
+            const height = document.getElementById('edit-height').value;
+
+            const params = new URLSearchParams();
+            params.append('fileName', fileName);
+            params.append('fileType', fileType);
+            params.append('fileSize', fileSize);
+            params.append('width', width);
+            params.append('height', height);
+
+            fetch(`/image/${id}/update?${params}`, {
+                method: 'PUT'
             })
-                .then(response => response.blob())
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('Error updating image info');
+                    }
+                })
                 .then(data => {
-                    displayImageInfo(id); // Pass the id to displayImageInfo
+                    displayImageInfo(id);
+                    // Refresh the image list or perform any other necessary actions
                 })
                 .catch(error => {
                     console.error('Error updating image info:', error);
+                });
+        }
+
+        const deleteBtn = document.getElementById('delete-btn');
+        const imageCheckboxes = document.querySelectorAll('.image-checkbox');
+
+        deleteBtn.addEventListener('click', () => {
+            const selectedImageIds = Array.from(imageCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+
+            if (selectedImageIds.length > 0) {
+                deleteSelectedImages(selectedImageIds);
+            }
+        });
+
+        function deleteSelectedImages(imageIds) {
+            fetch('/images/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(imageIds)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Refresh the page after successful deletion
+                    } else {
+                        throw new Error('Error deleting images');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting images:', error);
                 });
         }
     </script>

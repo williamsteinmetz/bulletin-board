@@ -28,20 +28,9 @@ public class ImageService {
         imageRepository.insertFile(image);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-
-    public Image updateFileById(Integer id, Image updatedImage) {
-        Image image = imageRepository.getFileById(id);
-        if (image != null) {
-            image.setFileName(updatedImage.getFileName());
-            image.setFileType(updatedImage.getFileType());
-            image.setFileSize(updatedImage.getFileSize());
-            image.setImageData(updatedImage.getImageData());
-            image.setWidth(updatedImage.getWidth());
-            image.setHeight(updatedImage.getHeight());
-            imageRepository.save(image);
-            return image;
-        }
-        return null; // or throw an exception if preferred
+    
+    public void updateImage(Image image) {
+    imageRepository.save(image);
     }
     
     public ResponseEntity<?> deleteFileByFileId(Integer id) {
@@ -52,5 +41,9 @@ public class ImageService {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    public void deleteImagesByIds(List<Integer> imageIds) {
+        imageRepository.deleteImagesByIds(imageIds);
     }
 }
